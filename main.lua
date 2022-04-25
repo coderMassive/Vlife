@@ -1,7 +1,3 @@
-function drawPlayer()
-    love.graphics.draw(image, playerX, playerY)
-end
-
 function drawEnergy()
     love.graphics.setColor(255, 255, 0)
     love.graphics.rectangle("fill", 0, 10, energy * 4/3, 20)
@@ -17,7 +13,7 @@ function drawHealth()
     love.graphics.setColor(255, 255, 255)
 end
 
-function movement()
+function movement(dt)
     if energy == 0 then
         tired = true
     elseif tired and energy == 300 then
@@ -27,11 +23,21 @@ function movement()
         playerX = playerX + 10
         direction = 1
         energy = energy - 2
+        if dir == -1 then
+            playerX = playerX - 50
+        end
+        dir = 1
+        updateAnimation(run, dt)
     end
     if love.keyboard.isDown("a") and playerY == playerGround and not tired then
         playerX = playerX - 10
         direction = -1
         energy = energy - 2
+        if dir == 1 then
+            playerX = playerX + 50
+        end
+        dir = -1
+        updateAnimation(run, dt)
     end
     if playerX > width - 60 then
         playerX = width - 60
@@ -53,9 +59,11 @@ function jump(dt)
         if direction == 1 then
             playerX = playerX + 6
             energy = energy - 2
+            updateAnimation(run, dt)
         elseif direction == -1 then
             playerX = playerX - 6
             energy = energy - 2
+            updateAnimation(run, dt)
         end
 	end
     if playerY > playerGround then
@@ -81,15 +89,43 @@ function regenHealth()
     end
 end
 
+function newAnimation(image, width, height, duration)
+    local animation = {}
+    animation.spriteSheet = image;
+    animation.quads = {};
+
+    for y = 0, image:getHeight() - height, height do
+        for x = 0, image:getWidth() - width, width do
+            table.insert(animation.quads, love.graphics.newQuad(x, y, width, height, image:getDimensions()))
+        end
+    end
+
+    animation.duration = duration or 1
+    animation.currentTime = 0
+    return animation
+end
+
+function updateAnimation(animation, dt)
+    animation.currentTime = animation.currentTime + dt
+    if animation.currentTime >= animation.duration then
+        animation.currentTime = animation.currentTime - animation.duration
+    end
+end
+
+function drawAnimation(animation, x, y, width, height)
+    spriteNum = math.floor(animation.currentTime / animation.duration * #animation.quads) + 1
+    love.graphics.draw(animation.spriteSheet, animation.quads[spriteNum], x, y, 0, width, height)
+end
+
 function love.draw()
     drawBG()
     drawEnergy()
     drawHealth()
-    drawPlayer()
+    drawAnimation(run, playerX, playerY, dir*4, 4)
 end
 
 function love.update(dt)
-    movement()
+    movement(dt)
     jump(dt)
     regenEnergy()
     regenHealth()
@@ -101,7 +137,8 @@ function love.load()
     playerX = width/2 -30
     playerY = 300
     direction = 0
-    image = love.graphics.newImage("person.png")
+    dir = 1
+    run = newAnimation(love.graphics.newImage("person.png"), 16, 18, 1)
     imageBg = love.graphics.newImage("bg.png")
     playerGround = 300
 	playerY_velocity = 0
