@@ -24,7 +24,7 @@ function movement(dt)
         direction = 1
         energy = energy - 2
         if dir == -1 then
-            playerX = playerX - 50
+            playerX = playerX - 48
         end
         dir = 1
         updateAnimation(run, dt)
@@ -34,16 +34,19 @@ function movement(dt)
         direction = -1
         energy = energy - 2
         if dir == 1 then
-            playerX = playerX + 50
+            playerX = playerX + 48
         end
         dir = -1
         updateAnimation(run, dt)
     end
-    if playerX > width - 60 then
-        playerX = width - 60
+    if playerX > width - 48 and dir == 1 then
+        playerX = width - 48
     end
-    if playerX < 0 then
+    if playerX < 0 and dir == 1 then
         playerX = 0
+    end
+    if playerX < 48 and dir == -1 then
+        playerX = 48
     end
 end
 
