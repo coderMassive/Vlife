@@ -120,6 +120,14 @@ function drawAnimation(animation, x, y, width, height)
     love.graphics.draw(animation.spriteSheet, animation.quads[spriteNum], x, y, 0, width, height)
 end
 
+function checkStomp()
+    if love.keyboard.isDown("lshift") then
+        playerGravity = -4500
+    else
+        playerGravity = -1500
+    end
+end
+
 function love.draw()
     drawBG()
     drawEnergy()
@@ -132,6 +140,7 @@ function love.update(dt)
     jump(dt)
     regenEnergy()
     regenHealth()
+    checkStomp()
 end
 
 function love.load()
