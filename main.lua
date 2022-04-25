@@ -128,11 +128,37 @@ function checkStomp()
     end
 end
 
+function spawnEnemy(x)
+    stages[stage].push_back(x)
+end
+
+function drawEnemies()
+    for i,v in ipairs(stages[stage]) do
+        love.graphics.draw(enemyImage, v, 320, 0, 5)
+    end
+end
+
+function enemyAI()
+    for i,v in ipairs(stages[stage]) do
+        if playerX > v then
+            stages[stage][i] = v + 2
+        elseif playerX < v then
+            stages[stage][i] = v - 2
+        end
+        if playerX >= v and playerX <= 40 + v and playerY == 300 then
+            if health > -5 then
+                health = health - 0.7
+            end
+        end
+    end
+end
+
 function love.draw()
     drawBG()
     drawEnergy()
     drawHealth()
     drawAnimation(run, playerX, playerY, dir*4, 4)
+    drawEnemies()
 end
 
 function love.update(dt)
@@ -141,6 +167,7 @@ function love.update(dt)
     regenEnergy()
     regenHealth()
     checkStomp()
+    enemyAI()
 end
 
 function love.load()
@@ -159,4 +186,7 @@ function love.load()
     energy = 300
     health = 100
     tired = false
+    stages = {{0, 200}}
+    stage = 1
+    enemyImage = love.graphics.newImage("enemy.png")
 end
