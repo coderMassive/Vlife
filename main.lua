@@ -92,7 +92,7 @@ function createPlatform()
     temp.y = 250
     temp.w = 120
     temp.h = 20
-    temp.speed = 2
+    temp.speed = 3
     table.insert(platforms, temp)
 end
 
@@ -102,7 +102,7 @@ function createFirstPlatform()
     temp.y = 250
     temp.w = 120
     temp.h = 20
-    temp.speed = 2
+    temp.speed = 3
     platforms = {temp}
 end
 
@@ -118,7 +118,7 @@ function updatePlatforms()
     for i = 1, #platforms do
         local platform = platforms[i]
         platform.x = platform.x - platform.speed
-        if platform.x <= playerX + 50 and playerX <= platform.x + 120 or playerY < 180 then
+        if platform.x <= playerX + 40 and playerX <= platform.x + 120 or playerY < 180 then
             dead = false
         end
     end
@@ -126,8 +126,8 @@ function updatePlatforms()
         love.event.quit()
     end
     math.randomseed(os.time())
-    local num = math.random(1, 4)
-    if num ~= 4 and cooldown >= 90 then
+    local num = math.random(1, 20)
+    if (num <= 11) and cooldown >= 50 then
         createPlatform()
         cooldown = 0
     end
