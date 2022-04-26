@@ -89,7 +89,8 @@ end
 function createPlatform()
     local temp = {}
     temp.x = width
-    temp.y = 250
+    math.randomseed(os.time())
+    temp.y = math.random(160, 300)
     temp.w = 120
     temp.h = 20
     temp.speed = 3
@@ -118,16 +119,17 @@ function updatePlatforms()
     for i = 1, #platforms do
         local platform = platforms[i]
         platform.x = platform.x - platform.speed
-        if platform.x <= playerX + 40 and playerX <= platform.x + 120 or playerY < 180 then
+        if platform.x <= playerX + 40 and playerX <= platform.x + 120 or playerY < playerGround then
             dead = false
+        end
+        if platform.x <= playerX + 40 and playerX <= platform.x + 120 and playerGround ~= platform.y then
+            playerGround = platform.y - 70
         end
     end
     if dead then
         love.event.quit()
     end
-    math.randomseed(os.time())
-    local num = math.random(1, 20)
-    if (num <= 11) and cooldown >= 50 then
+    if cooldown >= 90 then
         createPlatform()
         cooldown = 0
     end
@@ -151,7 +153,7 @@ function love.load()
     love.window.setTitle("Vlife")
     width = love.graphics.getWidth()
     playerX = width/2 + 250
-    playerY = 300
+    playerY = 180
     direction = 0
     createFirstPlatform()
     run = newAnimation(love.graphics.newImage("person.png"), 16, 18, 1)
