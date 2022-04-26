@@ -1,42 +1,16 @@
-function drawEnergy()
-    love.graphics.setColor(255, 255, 0)
-    love.graphics.rectangle("fill", 0, 10, energy * 4/3, 20)
-    love.graphics.setColor(255, 0, 0)
-end
-
 function drawBG()
     love.graphics.draw(imageBg, 0, 0, 0, 1.5, 1.5)
 end
 
-function drawHealth()
-    love.graphics.rectangle("fill", width/2 + 400 - 4*health, 10, health * 4, 20)
-    love.graphics.setColor(255, 255, 255)
-end
-
 function movement(dt)
-    if energy == 0 then
-        tired = true
-    elseif tired and energy == 300 then
-        tired = false
-    end
-    if love.keyboard.isDown("d") and playerY == playerGround and not tired then
-        playerX = playerX + 10
+    if love.keyboard.isDown("d") and playerY == playerGround then
+        playerX = playerX + 5
         direction = 1
-        energy = energy - 2
-        if dir == -1 then
-            playerX = playerX - 48
-        end
-        dir = 1
         updateAnimation(run, dt)
     end
-    if love.keyboard.isDown("a") and playerY == playerGround and not tired then
-        playerX = playerX - 10
+    if love.keyboard.isDown("a") and playerY == playerGround then
+        playerX = playerX - 5
         direction = -1
-        energy = energy - 2
-        if dir == 1 then
-            playerX = playerX + 48
-        end
-        dir = -1
         updateAnimation(run, dt)
     end
     if playerX > width - 48 and dir == 1 then
@@ -51,7 +25,7 @@ function movement(dt)
 end
 
 function jump(dt)
-    if love.keyboard.isDown('w') and not tired then
+    if love.keyboard.isDown('w') then
         if playerY_velocity == 0 then
             playerY_velocity = playerJump_height
         end
@@ -60,12 +34,10 @@ function jump(dt)
 		playerY = playerY + playerY_velocity * dt
 		playerY_velocity = playerY_velocity - playerGravity * dt
         if direction == 1 then
-            playerX = playerX + 6
-            energy = energy - 2
+            playerX = playerX + 5
             updateAnimation(run, dt)
         elseif direction == -1 then
-            playerX = playerX - 6
-            energy = energy - 2
+            playerX = playerX - 5
             updateAnimation(run, dt)
         end
 	end
@@ -78,24 +50,10 @@ function jump(dt)
     end
 end
 
-function regenEnergy()
-    if tired and energy < 300 then
-        energy = energy + 2
-    elseif energy < 300 then
-        energy = energy + 1
-    end
-end
-
-function regenHealth()
-    if health < 100 then
-        health = health + 0.1
-    end
-end
-
 function newAnimation(image, width, height, duration)
     local animation = {}
-    animation.spriteSheet = image;
-    animation.quads = {};
+    animation.spriteSheet = image
+    animation.quads = {}
 
     for y = 0, image:getHeight() - height, height do
         for x = 0, image:getWidth() - width, width do
@@ -124,41 +82,84 @@ function checkStomp()
     if love.keyboard.isDown("lshift") then
         playerGravity = -4500
     else
-        playerGravity = -1500
+        playerGravity = -2000
     end
+end
+
+function createPlatform()
+    local temp = {}
+    temp.x = width
+    temp.y = 250
+    temp.w = 120
+    temp.h = 20
+    temp.speed = 2
+    table.insert(platforms, temp)
+end
+
+function createFirstPlatform()
+    local temp = {}
+    temp.x = playerX
+    temp.y = 250
+    temp.w = 120
+    temp.h = 20
+    temp.speed = 2
+    platforms = {temp}
+end
+
+function drawPlatforms()
+    for i = 1, #platforms do
+        local platform = platforms[i]
+        love.graphics.rectangle("fill", platform.x, platform.y, platform.w, platform.h)
+    end
+end
+
+function updatePlatforms()
+    local dead = true
+    for i = 1, #platforms do
+        local platform = platforms[i]
+        platform.x = platform.x - platform.speed
+        if platform.x <= playerX + 50 and playerX <= platform.x + 120 or playerY < 180 then
+            dead = false
+        end
+    end
+    if dead then
+        love.event.quit()
+    end
+    math.randomseed(os.time())
+    local num = math.random(1, 4)
+    if num ~= 4 and cooldown >= 90 then
+        createPlatform()
+        cooldown = 0
+    end
+    cooldown = cooldown + 1
 end
 
 function love.draw()
     drawBG()
-    drawEnergy()
-    drawHealth()
-    drawAnimation(run, playerX, playerY, dir*4, 4)
+    drawAnimation(run, playerX, playerY, 4, 4)
+    drawPlatforms()
 end
 
 function love.update(dt)
     movement(dt)
     jump(dt)
-    regenEnergy()
-    regenHealth()
     checkStomp()
+    updatePlatforms()
 end
 
 function love.load()
     love.window.setTitle("Vlife")
     width = love.graphics.getWidth()
-    playerX = width/2 -30
+    playerX = width/2 + 250
     playerY = 300
     direction = 0
-    dir = 1
+    createFirstPlatform()
     run = newAnimation(love.graphics.newImage("person.png"), 16, 18, 1)
     imageBg = love.graphics.newImage("bg.png")
-    playerGround = 300
+    playerGround = 180
 	playerY_velocity = 0
 	playerJump_height = -600
-	playerGravity = -1500
-    energy = 300
-    health = 100
-    tired = false
-    stages = {{0, 200}}
+	playerGravity = -2000
     stage = 1
+    cooldown = 0
 end
